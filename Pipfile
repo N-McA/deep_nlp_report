@@ -1,0 +1,17 @@
+[[source]]
+verify_ssl = true
+name = "pypi"
+url = "https://pypi.python.org/simple"
+
+[packages]
+"e1839a8" = {editable = true, path = "."}
+ipython = "*"
+jupyter = "*"
+jupyterlab = "*"
+tensorflow-gpu = "*"
+keras = "*"
+
+[requires]
+python_version = "3.5"
+
+[dev-packages]
