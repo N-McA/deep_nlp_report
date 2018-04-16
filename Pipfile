@@ -10,6 +10,9 @@ jupyter = "*"
 jupyterlab = "*"
 tensorflow-gpu = "*"
 keras = "*"
+unidecode = "*"
+matplotlib = "*"
+"h5py" = "*"
 
 [requires]
 python_version = "3.5"

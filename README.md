@@ -1,4 +1,8 @@
 
+# Usage
+
+Please cite the data loading utils if you use them this year, I could do without getting in shit.
+
 # Setup
 
 This uses [git-lfs](https://git-lfs.github.com/) for the data and a filter to remove the output of notebooks (otherwise diffs are a nightmare).
