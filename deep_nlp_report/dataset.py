@@ -35,6 +35,7 @@ class MedianRankCallback(keras.callbacks.Callback):
         for ds, i in zip(all_distances, self.test_positions):
             ranks.append(np.sum(ds < ds[i]))
         logs['median_dev_rank'] = np.median(ranks)
+        logs['dev_rank_std'] = np.std(ranks)
 
 
 class DictionaryTaskDataset:
@@ -121,7 +122,7 @@ class DictionaryTaskDataset:
 
         
         # Now store the stuff we care about:
-        self.vocab = selected_vocab
+        self.vocab = np.array(selected_vocab)
         self.vocab_embeddings = vocab_embeddings
         self.word_to_vocab_idx = word_to_vocab_idx
         self.glosses = glosses
@@ -129,11 +130,6 @@ class DictionaryTaskDataset:
         self.headwords = headwords
         self.headword_embeddings = headword_embeddings
         
-        
-        # Prep the test data
-        unique_headwords, unique_headword_embedding_idxs = np.unique(headwords, return_index=True)
-        unique_headword_embeddings = headword_embeddings[unique_headword_embedding_idxs]
-
         test_words, test_defs = [], []
         with test_definitions_path.open() as f:
             for line in f:
@@ -144,22 +140,36 @@ class DictionaryTaskDataset:
         encoded_test_defs = [[word_to_vocab_idx.get(w, OOV_IDX) for w in d.split(' ')] + [END_IDX] for d in test_defs]
         encoded_test_defs = self.pad_seqs(encoded_test_defs)
 
-        test_word_indexes = [np.searchsorted(unique_headwords, tw) for tw in test_words]
+        test_word_indexes = [np.searchsorted(self.vocab, tw) for tw in test_words]
         
-        self.unique_headword_embeddings = unique_headword_embeddings
         self.encoded_test_defs = encoded_test_defs
         self.test_word_indexes = test_word_indexes
-
+        
+        idxs = np.random.permutation(np.arange(len(headwords)))
+        n_val = len(idxs) // 85
+        self.n_val_examples = n_val
+        self.train_idxs = idxs[:-n_val]
+        self.val_idxs = idxs[-n_val:]
+        
     def training_batches(self, *, batch_size):
-        for gloss_idxs, headword_embs in utils.batches([self.glosses, self.headword_embeddings], batch_size):
+        gs = self.glosses[self.train_idxs]
+        hwes = self.headword_embeddings[self.train_idxs]
+        for gloss_idxs, headword_embs in utils.batches([gs, hwes], batch_size):
             gloss_idxs = self.pad_seqs(gloss_idxs)
+            yield gloss_idxs, headword_embs
+            
+    def val_batches(self, *, batch_size):
+        gs = self.glosses[self.val_idxs]
+        hwes = self.headword_embeddings[self.val_idxs]
+        for gloss_idxs, headword_embs in utils.batches([gs, hwes], batch_size):
+            gloss_idxs = self.pad_seqs(gloss_idxs) 
             yield gloss_idxs, headword_embs
             
     def get_median_rank_callback(self):
         return MedianRankCallback(
             self.encoded_test_defs,
             self.test_word_indexes, 
-            self.unique_headword_embeddings
+            self.vocab_embeddings
         )
     
     def pad_seqs(self, x):

@@ -4,6 +4,8 @@ from pathlib import Path
 
 import numpy as np
 
+import tensorflow as tf
+
 
 def this_scripts_path():
     return Path(os.path.dirname(os.path.realpath(__file__)))
@@ -49,4 +51,24 @@ def batches(xs, batch_size):
             
         yield [x[batch_start:batch_end] for x in xs]
         batch_start += batch_size
+        
+        
+def tf_shape_list(x):
+    """Return list of dims, statically where possible."""
+    x = tf.convert_to_tensor(x)
+
+    # If unknown rank, return dynamic shape
+    if x.get_shape().dims is None:
+        return tf.shape(x)
+
+    static = x.get_shape().as_list()
+    shape = tf.shape(x)
+
+    ret = []
+    for i in range(len(static)):
+        dim = static[i]
+        if dim is None:
+            dim = shape[i]
+        ret.append(dim)
+    return ret
         

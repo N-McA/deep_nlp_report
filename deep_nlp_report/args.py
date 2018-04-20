@@ -16,6 +16,7 @@ args = SimpleNamespace(
     test_definitions_path=_data_root / 'concept_descriptions.tok',
     word2vec_vec_path=_data_root / 'glove/glove.42B.300d.embeddings.npy',
     word2vec_word_path=_data_root / 'glove/glove.42B.300d.words.txt',
+    joblib_cache_path = _data_root / 'joblib_cache',
     
     # Output
     output_loc=this_scripts_path() / '../output',
