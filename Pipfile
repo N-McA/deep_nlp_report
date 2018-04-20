@@ -13,6 +13,9 @@ keras = "*"
 unidecode = "*"
 matplotlib = "*"
 "h5py" = "*"
+pandas = "*"
+seaborn = "*"
+joblib = "*"
 
 [requires]
 python_version = "3.5"
